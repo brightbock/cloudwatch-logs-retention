@@ -1,0 +1,5 @@
+*.tfstate
+*.tfstate.*
+**/.terraform
+**/.terraform.*
+**/.env_sig.txt
