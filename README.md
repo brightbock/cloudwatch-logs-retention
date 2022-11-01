@@ -4,13 +4,13 @@
 
 _TLDR: This ensures all CloudWatch Logs log groups will not store logs forever._
 
-This is a Terraform module / AWS [Lambda function](https://github.com/brightbock/cloudwatch-logs-retention/blob/main/src/lambda.py) to ensure Cloudwatch Logs log groups have a [retention policy](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html) configured.
+This is a Terraform module / AWS [Lambda function](https://github.com/brightbock/cloudwatch-logs-retention/blob/main/src/lambda.py) to ensure CloudWatch Logs log groups have a [retention policy](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html) configured.
 
 This module will ensure that all log groups are set to retain logs for at least `retention_days_min` and at most `retention_days_max`.
 
 If a log group does not have a retention policy set, or the current retention period is outside of the `retention_days_min` to `retention_days_max` range, then new a retention policy will be applied to the log group, with the retention period set to `retention_days_target` days.
 
-By default `discover_regions` is `true, so log groups in all AWS Regions your account has enabled will be processed.
+By default `discover_regions` is `true`, so log groups in all AWS Regions will be processed.
 
 All log groups will be processed by default. You can specify `regex_match` and `regex_exclude` to process only log groups with names that match `regex_match` and do not match `regex_exclude`.
 
