@@ -13,7 +13,7 @@ def refresh_regions(seed_region):
         client = boto3.client(
             "ec2",
             region_name=seed_region,
-            config=botocore.config.Config(retries={"mode": "standard", "max_attempts": 2}),
+            config=botocore_configuration,
         )
         regions = [
             region["RegionName"]
@@ -66,7 +66,7 @@ def lambda_handler(event, context):
         client = boto3.client(
             "logs",
             region_name=region,
-            config=botocore.config.Config(retries={"mode": "standard", "max_attempts": 2}),
+            config=botocore_configuration,
         )
 
         try:
@@ -154,6 +154,17 @@ if RETENTION_DAYS_TARGET not in RETENTION_ACCEPTABLE:
         if days > RETENTION_DAYS_TARGET:
             RETENTION_DAYS_TARGET = days
             break
+
+botocore_configuration = botocore.config.Config(retries={"mode": "standard", "max_attempts": 2})
+try:
+    # Considering this makes multiple sequential calls to each region's CWL endpoint
+    # enabling TCP keepalive is a good idea. However the version of botocore
+    # included in Lambda/python3.9 runtime is currently 1.23.32, and `tcp_keepalive` is
+    # from version 1.27.84. So try it, and recover gracefully on failure:
+    botocore_configuration = botocore_configuration.merge(botocore.config.Config(tcp_keepalive=True))
+except TypeError:
+    print("INFO: Current botocore version does not support TCP keepalive")
+    pass
 
 last_execution_time = 0
 region_list_refresh_time = 0
