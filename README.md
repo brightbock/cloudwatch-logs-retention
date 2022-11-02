@@ -27,7 +27,7 @@ The function will be automatically triggered according to the `schedule_expressi
 ```
 module "cloudwatch_logs_retention" {
   project_name          = "cloudwatch_logs_retention"
-  source                = "git::https://github.com/brightbock/cloudwatch-logs-retention.git?ref=main"
+  source                = "git::https://github.com/brightbock/cloudwatch-logs-retention.git?ref=v0.1.2"
   # providers             = { aws = aws.use1 }
   retention_days_target = 90
   retention_days_min    = 30
