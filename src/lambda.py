@@ -47,6 +47,7 @@ def lambda_handler(event, context):
     counter_log_groups = 0
     counter_log_groups_changed = 0
     counter_log_groups_filtered = 0
+    counter_log_groups_deleted = 0
 
     timestamp_now = int(datetime.now().timestamp())
 
@@ -80,6 +81,8 @@ def lambda_handler(event, context):
 
                     log_group_name = log_group["logGroupName"]
                     current_retention = log_group["retentionInDays"] if "retentionInDays" in log_group else None
+                    group_age_days = int(((1000 * timestamp_now) - log_group["creationTime"]) / 86400000)
+                    group_stored_bytes = int(log_group["storedBytes"])
 
                     if re.search(REGEX_EXCLUDE, log_group_name) or not re.search(REGEX_MATCH, log_group_name):
                         counter_log_groups_filtered += 1
@@ -87,9 +90,23 @@ def lambda_handler(event, context):
                             print("== [{}] FILTER [{:04d}] {}".format(region, current_retention if current_retention else 9999, log_group_name))
                         continue
 
+                    if (DELETE_EMPTY_DAYS > 0) and (group_age_days > DELETE_EMPTY_DAYS) and (group_stored_bytes == 0):
+                        if not DRY_RUN:
+                            try:
+                                client.delete_log_group(logGroupName=log_group_name)
+                                counter_log_groups_deleted += 1
+                            except botocore.exceptions.ClientError as e:
+                                print("ERROR: {}".format(str(e)))
+                        print("== [{}] DELETE [{:04d} > {:04d} | {:016d}] {}{}".format(region, group_age_days, DELETE_EMPTY_DAYS, group_stored_bytes, log_group_name, DRY_RUN_MSG))
+                        continue
+
                     if current_retention and (current_retention <= RETENTION_DAYS_MAX) and (current_retention >= RETENTION_DAYS_MIN):
                         if DRY_RUN:
-                            print("== [{}] ACCEPT [{:04d} <= {:04d} <= {:04d}] {}".format(region, RETENTION_DAYS_MIN, current_retention, RETENTION_DAYS_MAX, log_group_name))
+                            print(
+                                "== [{}] ACCEPT [{:04d} <= {:04d} <= {:04d} | {:016d} | {:04d}] {}".format(
+                                    region, RETENTION_DAYS_MIN, current_retention, RETENTION_DAYS_MAX, group_stored_bytes, group_age_days, log_group_name
+                                )
+                            )
                         continue
 
                     for attempt in range(1):
@@ -104,7 +121,7 @@ def lambda_handler(event, context):
                                     current_retention if current_retention else 9999,
                                     RETENTION_DAYS_TARGET,
                                     log_group_name,
-                                    " [DRY_RUN]" if DRY_RUN else "",
+                                    DRY_RUN_MSG,
                                 )
                             )
                             break
@@ -122,12 +139,13 @@ def lambda_handler(event, context):
             # Next region
             continue
     print(
-        "==== SUMMARY: Regions:{}, LogGroups:{}, Filtered:{}, Changed:{}{} ====".format(
+        "==== SUMMARY: Regions:{}, LogGroups:{}, Filtered:{}, Changed:{}, Deleted:{}{} ====".format(
             len(region_list),
             counter_log_groups,
             counter_log_groups_filtered,
             counter_log_groups_changed,
-            " [DRY_RUN]" if DRY_RUN else "",
+            counter_log_groups_deleted,
+            DRY_RUN_MSG,
         )
     )
 
@@ -140,12 +158,14 @@ RETENTION_ACCEPTABLE_MAX = max(RETENTION_ACCEPTABLE)
 RETENTION_DAYS_TARGET = int(os.getenv("RETENTION_DAYS_TARGET", RETENTION_ACCEPTABLE_MAX))
 RETENTION_DAYS_MIN = int(os.getenv("RETENTION_DAYS_MIN", 0))
 RETENTION_DAYS_MAX = int(os.getenv("RETENTION_DAYS_MAX", 99999))
+DELETE_EMPTY_DAYS = int(os.getenv("DELETE_EMPTY_DAYS", 0))
 CACHE_TTL_SECONDS_REGION_LIST = int(os.getenv("CACHE_TTL_SECONDS_REGION_LIST", 86400 * 7))
 SEED_REGION = os.getenv("SEED_REGION", "us-east-1")
 DISCOVER_REGIONS = str(os.getenv("DISCOVER_REGIONS", "true")).strip().lower() in ["yes", "true", "1"]
-DRY_RUN = str(os.getenv("DRY_RUN", "true")).strip().lower() not in ["no", "false", "0"]
 REGEX_MATCH = re.compile(os.getenv("REGEX_MATCH", ""), flags=re.X)
 REGEX_EXCLUDE = re.compile(os.getenv("REGEX_EXCLUDE", "^$"), flags=re.X)
+DRY_RUN = str(os.getenv("DRY_RUN", "true")).strip().lower() not in ["no", "false", "0"]
+DRY_RUN_MSG = " [DRY_RUN]" if DRY_RUN else ""
 
 if (RETENTION_DAYS_TARGET > RETENTION_ACCEPTABLE_MAX) or (RETENTION_DAYS_TARGET < min(RETENTION_ACCEPTABLE)):
     RETENTION_DAYS_TARGET = RETENTION_ACCEPTABLE_MAX
@@ -154,6 +174,9 @@ if RETENTION_DAYS_TARGET not in RETENTION_ACCEPTABLE:
         if days > RETENTION_DAYS_TARGET:
             RETENTION_DAYS_TARGET = days
             break
+
+if DELETE_EMPTY_DAYS < RETENTION_DAYS_TARGET:
+    DELETE_EMPTY_DAYS = 0
 
 botocore_configuration = botocore.config.Config(retries={"mode": "standard", "max_attempts": 2})
 try:

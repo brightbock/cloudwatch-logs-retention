@@ -5,6 +5,7 @@ locals {
     RETENTION_DAYS_TARGET         = var.retention_days_target
     RETENTION_DAYS_MIN            = var.retention_days_min
     RETENTION_DAYS_MAX            = var.retention_days_max
+    DELETE_EMPTY_DAYS             = var.delete_empty_days
     CACHE_TTL_SECONDS_REGION_LIST = var.cache_ttl_seconds_region_list
     SEED_REGION                   = var.seed_region == "" ? data.aws_region.current.name : var.seed_region
     DISCOVER_REGIONS              = var.discover_regions ? "true" : "false"
@@ -61,6 +62,7 @@ resource "aws_iam_policy" "lambda_permissions" {
       Statement = [
         {
           Action = [
+            "logs:DeleteLogGroup",
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:DescribeLogGroups",

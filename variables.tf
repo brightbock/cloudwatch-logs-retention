@@ -15,6 +15,11 @@ variable "retention_days_max" {
   type = string
 }
 
+variable "delete_empty_days" {
+  type    = string
+  default = "0"
+}
+
 variable "schedule_expression" {
   type    = string
   default = "rate(23 hours)"

@@ -18,6 +18,8 @@ You can deploy with `dry_run = "true"` to see what will happen without actually 
 
 The function will be automatically triggered according to the `schedule_expression` [schedule expression](https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents-expressions.html). The default is to trigger approximately every 23 hours.
 
+Setting `delete_empty_days` to a positive integer will delete _empty_ log groups older than that number of days.
+
 ## How to use:
 
 1. Add a module definition to your Terraform. See the example below.
@@ -37,6 +39,7 @@ module "cloudwatch_logs_retention" {
   # regex_match           = ""
   # regex_exclude         = "^$"
   # schedule_expression   = "rate(23 hours)"
+  # delete_empty_days     = 600
 }
 
 ```
