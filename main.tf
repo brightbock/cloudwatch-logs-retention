@@ -15,6 +15,7 @@ locals {
   }
   lambda_function_env_hash = sha256(jsonencode(local.lambda_function_environment))
   lambda_src_dir           = var.lambda_src_dir == "" ? "${path.module}/src" : var.lambda_src_dir
+  lambda_zip_file          = var.lambda_zip_file == "" ? "/tmp/lambda-cfl-lg-tag--${local.lambda_function_name}.zip" : var.lambda_zip_file
 }
 
 data "aws_region" "current" {}
@@ -108,12 +109,12 @@ data "archive_file" "source_zip" {
   type        = "zip"
   excludes    = []
   source_dir  = local.lambda_src_dir
-  output_path = var.lambda_zip_file
+  output_path = local.lambda_zip_file
 }
 
 resource "aws_lambda_function" "lambda_deploy" {
   description      = "Set Cloudwatch Logs Retention Period"
-  filename         = var.lambda_zip_file
+  filename         = local.lambda_zip_file
   function_name    = local.lambda_function_name
   role             = aws_iam_role.lambda_execution_role.arn
   handler          = "${replace(basename(var.lambda_src_filename), "/\\.py$/", "")}.lambda_handler"
