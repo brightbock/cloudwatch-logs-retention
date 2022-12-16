@@ -1,4 +1,4 @@
-![GitHub](https://img.shields.io/github/license/brightbock/cloudwatch-logs-retention) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/brightbock/cloudwatch-logs-retention) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/brightbock/cloudwatch-logs-retention/Terraform)
+![GitHub](https://img.shields.io/github/license/brightbock/cloudwatch-logs-retention) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/brightbock/cloudwatch-logs-retention) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brightbock/cloudwatch-logs-retention/terraform.yml?branch=main)
 
 #  CloudWatch Logs Retention
 
