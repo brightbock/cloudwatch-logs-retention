@@ -29,7 +29,7 @@ Setting `delete_empty_days` to a positive integer will delete _empty_ log groups
 ```
 module "cloudwatch_logs_retention" {
   project_name          = "cloudwatch_logs_retention"
-  source                = "git::https://github.com/brightbock/cloudwatch-logs-retention.git?ref=v0.1.2"
+  source                = "git::https://github.com/brightbock/cloudwatch-logs-retention.git?ref=v0.2.3"
   # providers             = { aws = aws.use1 }
   retention_days_target = 90
   retention_days_min    = 30
