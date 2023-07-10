@@ -127,6 +127,7 @@ resource "aws_lambda_function" "lambda_deploy" {
   environment {
     variables = local.lambda_function_environment
   }
+  layers = var.lambda_layers_python
   depends_on = [
     data.archive_file.source_zip,
     aws_cloudwatch_log_group.lambda_logs,

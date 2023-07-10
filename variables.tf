@@ -67,6 +67,11 @@ variable "lambda_log_retention_in_days" {
 
 #### THE DEFAULTS SHOULD BE FINE BELOW HERE ####
 
+variable "lambda_layers_python" {
+  type    = list(any)
+  default = []
+}
+
 variable "lambda_src_dir" {
   type    = string
   default = ""
