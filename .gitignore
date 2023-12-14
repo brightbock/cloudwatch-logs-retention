@@ -3,3 +3,4 @@
 **/.terraform
 **/.terraform.*
 **/.env_sig.txt
+*.tmp.zip

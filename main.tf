@@ -15,7 +15,7 @@ locals {
   }
   lambda_function_env_hash = sha256(jsonencode(local.lambda_function_environment))
   lambda_src_dir           = var.lambda_src_dir == "" ? "${path.module}/src" : var.lambda_src_dir
-  lambda_zip_file          = var.lambda_zip_file == "" ? "/tmp/lambda-cfl-lg-tag--${local.lambda_function_name}.zip" : var.lambda_zip_file
+  lambda_zip_file          = var.lambda_zip_file == "" ? "${path.module}/.tf_tmp--${local.account_id}--${local.lambda_function_name}.tmp.zip" : var.lambda_zip_file
 }
 
 data "aws_region" "current" {}
